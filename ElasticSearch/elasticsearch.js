@@ -7,8 +7,8 @@
  */
 var ElasticSearch = function(aURL, aUser, aPassword) {
 	if (isUnDef(aURL)) throw "Please provide aURL";
-	if (isUnDef(aUser)) throw "Please provide aUser";
-	if (isUnDef(aPassword)) throw "Please provide aPassword";
+	//if (isUnDef(aUser)) throw "Please provide aUser";
+	//if (isUnDef(aPassword)) throw "Please provide aPassword";
 
 	this.url = aURL;
 	this.user = aUser;
@@ -40,7 +40,51 @@ ElasticSearch.prototype.deleteIndex = function(aIndex) {
 
 	if (isUnDef(aIndex)) throw "Please provide aIndex";
 
-	return ow.obj.rest.jsonRemove(this.url + "/" + aIndex, {}, {}, this.user, this.pass);
+	return ow.obj.rest.jsonRemove(this.url + "/" + aIndex, {}, this.user, this.pass);
+}
+
+/**
+ * <odoc>
+ * <key>ElasticSearch.closeIndex(aIndex) : Map</key>
+ * Tries to close aIndex on Elastic Search and returns the result.
+ * </odoc>
+ */
+ElasticSearch.prototype.closeIndex = function(aIndex) {
+	ow.loadObj();
+
+	if (isUnDef(aIndex)) throw "Please provide aIndex";
+
+	return ow.obj.rest.jsonCreate(this.url + "/" + aIndex + "/_close", {}, this.user, this.pass);
+}
+
+/**
+ * <odoc>
+ * <key>ElasticSearch.openIndex(aIndex) : Map</key>
+ * Tries to open aIndex on Elastic Search and returns the result.
+ * </odoc>
+ */
+ElasticSearch.prototype.openIndex = function(aIndex) {
+	ow.loadObj();
+
+	if (isUnDef(aIndex)) throw "Please provide aIndex";
+
+	return ow.obj.rest.jsonCreate(this.url + "/" + aIndex + "/_open", {}, this.user, this.pass);
+}
+
+/**
+ * <odoc>
+ * <key>ElasticSearch.reIndex(anOriginalIndex, aNewIndex) : Map</key>
+ * Tries to copy anOriginalIndex to aNewIndex (reindex) and returns the result.
+ * </odoc>
+ */
+ElasticSearch.prototype.reIndex = function(anOrigIndex, aNewIndex) {
+	ow.loadObj();
+
+	if (isUnDef(anOrigIndex) || isUnDef(aNewIndex)) throw "Please provide an original index and the new index name";
+
+	var res = ow.obj.rest.jsonSet(this.url + "/_reindex", {}, { source : { index: anOrigIndex }, dest: { index: aNewIndex }}, this.user, this.pass);
+
+	return res;
 }
 
 ElasticSearch.prototype.getClusterHealth = function() {
@@ -115,7 +159,7 @@ ElasticSearch.prototype.createCh = function(aIndex, aIdKey, aChName) {
 	});
 }
 
-/**
+/** 
  * <odoc>
  * <key>ElasticSearch.startLog(aIndex, aHostId, localCopy)</key>
  * Starts sending all OpenAF logging to ElasticSearch on aIndex using aHostId (defaults to aIndex if not provided).
